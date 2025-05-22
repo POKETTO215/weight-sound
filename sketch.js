@@ -1,5 +1,3 @@
-
-// ———— 全局参数配置 ————
 let textLines = `
 文字从页面中缓缓浮现，漂浮起来。
 熟悉的字符变得陌生，总是逃脱视线；
@@ -13,10 +11,9 @@ let chars = [];
 let currentCharIndex = 0;
 let allTextDisplayed = false;
 
-// ———— 运动参数（可调节） ————
-let floatSpeed        = 7;    // 漂浮速度倍率
-let floatAmount       = 50;   // 最大偏移幅度
-let returnToHomeSpeed = 0.1;  // 回归插值速度
+let floatSpeed        = 7;
+let floatAmount       = 50;
+let returnToHomeSpeed = 0.1;
 
 let LOCK_DELAY  = 800;
 let RESET_DELAY = 5000;
@@ -29,17 +26,15 @@ let lineLockTimers = [];
 let lineLocked     = [];
 let totalLines     = 0;
 
-let lockAllTime = 0;  // 所有行锁定后的时间戳
+let lockAllTime = 0;
 
 let myFont;
 
-// ========== 音乐相关 ==========
 let bgMusic;
 let musicFading = false;
 let fadeTarget = 1;
 let fadeStartTime = 0;
-const FADE_DURATION = 2000; // 2秒淡入淡出
-// =============================
+const FADE_DURATION = 2000;
 
 function preload() {
   myFont = loadFont('JianHeSans-Optimized.ttf');
@@ -48,10 +43,9 @@ function preload() {
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
-  textFont(myFont);
+  textFont(myFont); // 字体必须在setup里强制设置一次
   frameRate(60);
   initLayout();
-  // 自动尝试播放
   if (bgMusic && !bgMusic.isPlaying()) {
     bgMusic.setVolume(1, 0);
     bgMusic.loop();
@@ -69,7 +63,6 @@ function initLayout() {
   allTextDisplayed = false;
   lockAllTime = 0;
 
-  // —— 动态计算字号、行距、初始字距 ——
   let baseSize    = min(windowWidth, windowHeight) / 40;
   let fontSize    = max(15, baseSize);
   let lineSpacing = fontSize * 1.5;
@@ -79,13 +72,11 @@ function initLayout() {
   textLeading(lineSpacing);
   textAlign(CENTER, CENTER);
 
-  // —— 响应式边距 ——
   let marginX = width * 0.10;
   let marginY = height * 0.10;
   let availW  = width - marginX * 2;
   let availH  = height - marginY * 2;
 
-  // —— 计算换行及垂直居中起始 Y ——
   let temp = [];
   let x = marginX;
   let displayLine = 0;
@@ -136,14 +127,12 @@ function draw() {
   detectHoveredLine();
   updateLockTimers();
 
-  // 按序显现文字
   if (!allTextDisplayed) {
     chars[currentCharIndex].isVisible = true;
     currentCharIndex = min(currentCharIndex + 1, chars.length);
     if (currentCharIndex === chars.length) allTextDisplayed = true;
   }
 
-  // 漂浮 & 回归
   for (let c of chars) {
     if (!c.isVisible) continue;
     if (c.isLocked) {
@@ -163,10 +152,8 @@ function draw() {
     }
   }
 
-  // 如果所有行都锁定，开始计时，5 秒后重置
   if (allTextDisplayed && lockAllTime === 0 && lineLocked.every(l => l)) {
     lockAllTime = millis();
-    // ========== 触发音乐淡出 ==========
     if (bgMusic && bgMusic.isPlaying() && !musicFading && bgMusic.getVolume() > 0.05) {
       musicFading = true;
       fadeTarget = 0;
@@ -178,14 +165,12 @@ function draw() {
     lockAllTime = 0;
   }
 
-  // 绘制字符
   fill(255);
   noStroke();
   for (let c of chars) {
     if (c.isVisible) text(c.char, c.x, c.y);
   }
 
-  // ========== 音乐淡入淡出动画 ==========
   if (musicFading && bgMusic) {
     let now = millis();
     let t = constrain((now - fadeStartTime) / FADE_DURATION, 0, 1);
@@ -199,11 +184,9 @@ function draw() {
       if (fadeTarget === 0 && bgMusic.isPlaying()) {
         bgMusic.pause();
       }
-      // 完全淡入无需操作
     }
   }
-
-
+}
 
 function detectHoveredLine() {
   hoveredLine = -1;
@@ -242,7 +225,6 @@ function lockLine(line) {
 }
 
 function resetAllLines() {
-  // 解锁行和字符
   for (let i = 0; i < totalLines; i++) {
     lineLocked[i]     = false;
     lineLockTimers[i] = 0;
@@ -255,7 +237,6 @@ function resetAllLines() {
     c.floatSpeedY  = random(-0.1, 0.1);
   });
 
-  // ========= 文字解锁，音乐淡入 =========
   if (bgMusic && !bgMusic.isPlaying()) {
     bgMusic.loop();
     bgMusic.setVolume(0, 0);
@@ -268,11 +249,10 @@ function resetAllLines() {
 }
 
 function touchStarted() {
-  if (typeof userStartAudio === "function") userStartAudio();
+  if (typeof userStartAudio === \"function\") userStartAudio();
   detectHoveredLine();
   touchedLine    = hoveredLine;
   touchStartTime = millis();
-  // 触摸播放音乐（兼容iOS自动播放限制）
   if (bgMusic && !bgMusic.isPlaying()) {
     bgMusic.setVolume(1, 0.3);
     bgMusic.loop();
