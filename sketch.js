@@ -203,14 +203,7 @@ function draw() {
     }
   }
 
-  // 状态提示
-  if (bgMusic && !bgMusic.isPlaying()) {
-    fill(255, 180, 180);
-    textAlign(CENTER, CENTER);
-    textSize(20);
-    text("如未听到音乐，请点击页面任意处", width / 2, height - 40);
-  }
-}
+
 
 function detectHoveredLine() {
   hoveredLine = -1;
