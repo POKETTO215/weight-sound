@@ -1,3 +1,14 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>动态文字音乐联动</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+  <script src="https://cdn.jsdelivr.net/npm/p5@1.9.0/lib/p5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/p5@1.9.0/lib/addons/p5.sound.min.js"></script>
+</head>
+<body style="margin:0;padding:0;overflow:hidden;background:#000;">
+<script>
 let textLines = `
 文字从页面中缓缓浮现，漂浮起来。
 熟悉的字符变得陌生，总是逃脱视线；
@@ -10,30 +21,46 @@ let textLines = `
 let chars = [];
 let currentCharIndex = 0;
 let allTextDisplayed = false;
+let floatSpeed = 7;
+let floatAmount = 50;
+let returnToHomeSpeed = 0.1;
+let LOCK_DELAY  = 800;
+let RESET_DELAY = 5000;
 
-let floatSpeed = 7, floatAmount = 50, returnToHomeSpeed = 0.1;
-let LOCK_DELAY = 800, RESET_DELAY = 5000;
-let hoveredLine = -1, touchedLine = -1, touchStartTime = 0;
-let lineLockTimers = [], lineLocked = [], totalLines = 0, lockAllTime = 0;
+let hoveredLine = -1;
+let touchedLine = -1;
+let touchStartTime = 0;
+let lineLockTimers = [];
+let lineLocked = [];
+let totalLines = 0;
+let lockAllTime = 0;
+let myFont;
 
-let myFont, bgMusic;
-let musicFading = false, fadeTarget = 1, fadeStartTime = 0;
-const FADE_DURATION = 2000;
+// ———— 音乐相关变量 ————
+let bgm;
+let musicVol = 1.0;  // 当前音量
+let targetVol = 1.0; // 目标音量
+const fadeDuration = 2000; // 毫秒
+
+let musicReady = false;
+let musicStarted = false;
 
 function preload() {
   myFont = loadFont('JianHeSans-Optimized.ttf');
-  bgMusic = loadSound('Harbours & Oceans - Lakes.mp3');
+  soundFormats('mp3', 'ogg');
+  bgm = loadSound('music.mp3', () => {
+    musicReady = true;
+    bgm.setVolume(1.0);
+    bgm.loop();
+    bgm.pause(); // 初始不自动播放
+  });
 }
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
-  textFont(myFont); // 强制设置字体，setup里必须有
+  textFont(myFont);
   frameRate(60);
   initLayout();
-  if (bgMusic && !bgMusic.isPlaying()) {
-    bgMusic.setVolume(1, 0);
-    bgMusic.loop();
-  }
 }
 
 function windowResized() {
@@ -46,12 +73,10 @@ function initLayout() {
   currentCharIndex = 0;
   allTextDisplayed = false;
   lockAllTime = 0;
-
   let baseSize = min(windowWidth, windowHeight) / 40;
   let fontSize = max(15, baseSize);
   let lineSpacing = fontSize * 1.5;
   let charSpacing = fontSize * 1.2;
-
   textSize(fontSize);
   textLeading(lineSpacing);
   textAlign(CENTER, CENTER);
@@ -60,7 +85,6 @@ function initLayout() {
   let marginY = height * 0.10;
   let availW  = width - marginX * 2;
   let availH  = height - marginY * 2;
-
   let temp = [];
   let x = marginX;
   let displayLine = 0;
@@ -81,11 +105,9 @@ function initLayout() {
     displayLine++;
     x = marginX;
   }
-
   totalLines = displayLine;
   let blockHeight = totalLines * lineSpacing;
   let startY = marginY + (availH - blockHeight) / 2 + fontSize / 2;
-
   lineLockTimers = Array(totalLines).fill(0);
   lineLocked     = Array(totalLines).fill(false);
 
@@ -136,39 +158,41 @@ function draw() {
     }
   }
 
-  if (allTextDisplayed && lockAllTime === 0 && lineLocked.every(l => l)) {
-    lockAllTime = millis();
-    if (bgMusic && bgMusic.isPlaying() && !musicFading && bgMusic.getVolume() > 0.05) {
-      musicFading = true;
-      fadeTarget = 0;
-      fadeStartTime = millis();
-    }
-  }
-  if (lockAllTime > 0 && millis() - lockAllTime > RESET_DELAY) {
+  // 音乐联动部分：检测锁定情况
+  let allLocked = allTextDisplayed && lineLocked.every(l => l);
+  if (allLocked && lockAllTime === 0) lockAllTime = millis();
+  if (allLocked && millis() - lockAllTime > RESET_DELAY) {
     resetAllLines();
     lockAllTime = 0;
   }
 
+  // 音量淡入淡出控制
+  if (musicReady && musicStarted) {
+    // 全部锁定后2秒淡出并暂停
+    if (allLocked) {
+      let elapsed = millis() - lockAllTime;
+      if (elapsed <= fadeDuration) {
+        targetVol = map(elapsed, 0, fadeDuration, 1, 0, true);
+      } else {
+        targetVol = 0;
+        if (!bgm.isPaused()) bgm.pause();
+      }
+    } else {
+      // 若解锁则淡入
+      if (bgm.isPaused()) bgm.loop();
+      targetVol = 1;
+      lockAllTime = 0;
+    }
+    // 线性插值音量
+    musicVol = lerp(musicVol, targetVol, 0.08);
+    bgm.setVolume(musicVol);
+  }
+
+  // 绘制文字
   fill(255);
   noStroke();
   for (let c of chars) {
     if (c.isVisible) text(c.char, c.x, c.y);
-  }
-
-  if (musicFading && bgMusic) {
-    let now = millis();
-    let t = constrain((now - fadeStartTime) / FADE_DURATION, 0, 1);
-    let from = bgMusic.getVolume();
-    let to = fadeTarget;
-    let newVol = lerp(from, to, t);
-    bgMusic.setVolume(newVol, 0.1);
-    if (t >= 1 || abs(newVol - fadeTarget) < 0.02) {
-      bgMusic.setVolume(fadeTarget, 0);
-      musicFading = false;
-      if (fadeTarget === 0 && bgMusic.isPlaying()) {
-        bgMusic.pause();
-      }
-    }
   }
 }
 
@@ -220,32 +244,31 @@ function resetAllLines() {
     c.floatSpeedX  = random(-0.1, 0.1);
     c.floatSpeedY  = random(-0.1, 0.1);
   });
-
-  if (bgMusic && !bgMusic.isPlaying()) {
-    bgMusic.loop();
-    bgMusic.setVolume(0, 0);
-  }
-  if (bgMusic && (!musicFading || fadeTarget === 0)) {
-    musicFading = true;
-    fadeTarget = 1;
-    fadeStartTime = millis();
-  }
 }
 
 function touchStarted() {
-  if (typeof userStartAudio === "function") userStartAudio();
+  // 移动端首次触发自动解锁音频策略
+  if (musicReady && !musicStarted) {
+    bgm.loop();
+    musicStarted = true;
+  }
   detectHoveredLine();
   touchedLine    = hoveredLine;
   touchStartTime = millis();
-  if (bgMusic && !bgMusic.isPlaying()) {
-    bgMusic.setVolume(1, 0.3);
-    bgMusic.loop();
-  }
   return false;
 }
-
 function touchEnded() {
   touchedLine    = -1;
   touchStartTime = 0;
   return false;
 }
+function mousePressed() {
+  // 桌面端首次触发自动解锁音频策略
+  if (musicReady && !musicStarted) {
+    bgm.loop();
+    musicStarted = true;
+  }
+}
+</script>
+</body>
+</html>
