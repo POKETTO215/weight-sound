@@ -1,9 +1,8 @@
-
 <!DOCTYPE html>
 <html lang="zh">
 <head>
   <meta charset="UTF-8">
-  <title>阅读障碍体验动效与音乐展示</title>
+  <title>weight-sound</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <!-- p5.js 主库 -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/p5.min.js"></script>
@@ -21,57 +20,10 @@
       -webkit-user-select: none;
       -webkit-tap-highlight-color: transparent;
     }
-    .title {
-      position: absolute;
-      top: 18px;
-      left: 0;
-      width: 100vw;
-      color: #fafbfc;
-      text-align: center;
-      font-size: 2.1rem;
-      font-family: system-ui, "PingFang SC", "Microsoft YaHei", sans-serif;
-      letter-spacing: .08em;
-      pointer-events: none;
-      opacity: .93;
-      text-shadow: 0 2px 12px #3339;
-      z-index: 10;
-      user-select: none;
-    }
-    .desc {
-      position: absolute;
-      top: 72px;
-      left: 0;
-      width: 100vw;
-      color: #ffd;
-      text-align: center;
-      font-size: 1.1rem;
-      font-family: system-ui, "PingFang SC", "Microsoft YaHei", sans-serif;
-      opacity: .88;
-      pointer-events: none;
-      z-index: 10;
-      user-select: none;
-      text-shadow: 0 1px 8px #222a;
-    }
-    .copyright {
-      position: absolute;
-      bottom: 10px;
-      left: 0;
-      width: 100vw;
-      text-align: center;
-      font-size: .95rem;
-      color: #bbb8;
-      z-index: 11;
-      pointer-events: none;
-      user-select: none;
-      letter-spacing: .07em;
-    }
     canvas { display: block; margin: 0 auto; outline: none; }
   </style>
 </head>
 <body>
-  <div class="title">阅读障碍体验动效与音乐展示</div>
-  <div class="desc">交互提示：<br>如未听到音乐，请轻触页面任意处开启音效。可用鼠标或手指悬停、长按文字感受阅读障碍者的视知觉体验。</div>
-  <div class="copyright">© 2024 简和体 & 动态阅读可视化研究</div>
   <script src="sketch.js"></script>
 </body>
 </html>
