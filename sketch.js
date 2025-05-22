@@ -36,7 +36,7 @@ let musicStarted = false;
 function preload() {
   myFont = loadFont('JianHeSans-Optimized.ttf');
   soundFormats('mp3', 'ogg');
-  bgm = loadSound('music.mp3', () => {
+  bgm = loadSound('Harbours & Oceans - Lakes.mp3', () => {
     musicReady = true;
     bgm.setVolume(1.0);
     bgm.loop();
