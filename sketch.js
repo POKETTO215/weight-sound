@@ -11,29 +11,13 @@ let chars = [];
 let currentCharIndex = 0;
 let allTextDisplayed = false;
 
-let floatSpeed        = 7;
-let floatAmount       = 50;
-let returnToHomeSpeed = 0.1;
+let floatSpeed = 7, floatAmount = 50, returnToHomeSpeed = 0.1;
+let LOCK_DELAY = 800, RESET_DELAY = 5000;
+let hoveredLine = -1, touchedLine = -1, touchStartTime = 0;
+let lineLockTimers = [], lineLocked = [], totalLines = 0, lockAllTime = 0;
 
-let LOCK_DELAY  = 800;
-let RESET_DELAY = 5000;
-
-let hoveredLine    = -1;
-let touchedLine    = -1;
-let touchStartTime = 0;
-
-let lineLockTimers = [];
-let lineLocked     = [];
-let totalLines     = 0;
-
-let lockAllTime = 0;
-
-let myFont;
-
-let bgMusic;
-let musicFading = false;
-let fadeTarget = 1;
-let fadeStartTime = 0;
+let myFont, bgMusic;
+let musicFading = false, fadeTarget = 1, fadeStartTime = 0;
 const FADE_DURATION = 2000;
 
 function preload() {
@@ -43,7 +27,7 @@ function preload() {
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
-  textFont(myFont); // 字体必须在setup里强制设置一次
+  textFont(myFont); // 强制设置字体，setup里必须有
   frameRate(60);
   initLayout();
   if (bgMusic && !bgMusic.isPlaying()) {
@@ -63,8 +47,8 @@ function initLayout() {
   allTextDisplayed = false;
   lockAllTime = 0;
 
-  let baseSize    = min(windowWidth, windowHeight) / 40;
-  let fontSize    = max(15, baseSize);
+  let baseSize = min(windowWidth, windowHeight) / 40;
+  let fontSize = max(15, baseSize);
   let lineSpacing = fontSize * 1.5;
   let charSpacing = fontSize * 1.2;
 
@@ -249,7 +233,7 @@ function resetAllLines() {
 }
 
 function touchStarted() {
-  if (typeof userStartAudio === \"function\") userStartAudio();
+  if (typeof userStartAudio === "function") userStartAudio();
   detectHoveredLine();
   touchedLine    = hoveredLine;
   touchStartTime = millis();
